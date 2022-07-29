@@ -52,7 +52,7 @@ params:
         subtitle: "やじるしのブログです。いろいろ書きます。"
         avatar:
             local: false
-            src: /blog/images/avatar.png
+            src: images/avatar.png
 
     article:
         math: false
