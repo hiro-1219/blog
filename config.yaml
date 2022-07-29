@@ -1,4 +1,4 @@
-baseurl: https://hiro-1219.github.io/my_blog/
+baseurl: https://hiro-1219.github.io/blog/
 languageCode: ja
 theme: hugo-theme-stack
 paginate: 5
