@@ -4,6 +4,7 @@ theme: hugo-theme-stack
 paginate: 5
 title: やじるしのブログ
 publishDir: docs
+canonifyurls: true
 
 languages:
     ja:
