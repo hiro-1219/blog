@@ -52,8 +52,8 @@ params:
     sidebar:
         subtitle: "やじるしのブログです。いろいろ書きます。"
         avatar:
-            local: false
-            src: /blog/images/avatar.png
+            local: true
+            src: img/avatar.png
 
     article:
         math: false
