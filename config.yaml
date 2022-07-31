@@ -42,7 +42,7 @@ params:
     favicon:
 
     footer:
-        since: 2020
+        since: 2022
         customText:
 
     dateFormat:
@@ -191,7 +191,7 @@ menu:
     social:
         - identifier: github
           name: GitHub
-          url: https://github.com/hiroki-1219
+          url: https://github.com/hiro-1219
           params:
               icon: brand-github
 

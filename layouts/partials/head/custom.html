@@ -5,3 +5,13 @@
         --article-font-size: 11pt
     }
 </style>
+
+{{ if not .Site.IsServer }}
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ .Site.GoogleAnalytics }}"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-JK7NDVM4ZK')
+</script>
+{{ end }}
