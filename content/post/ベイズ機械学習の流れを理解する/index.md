@@ -1,8 +1,7 @@
 ---
 title: "ベイズ機械学習の流れを理解する"
-date: 2022-12-15T00:00:00Z
+date: 2022-12-16 00:00:00 +0900
 image: img/predict.png
-draft: true
 math: true
 categories:
     - 機械学習
