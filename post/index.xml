@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on やじるしのブログ</title><link>https://hiro-1219.github.io/blog/post/</link><description>Recent content in Posts on やじるしのブログ</description><generator>Hugo -- gohugo.io</generator><language>ja</language><lastBuildDate>Fri, 05 May 2023 00:00:00 +0900</lastBuildDate><atom:link href="https://hiro-1219.github.io/blog/post/index.xml" rel="self" type="application/rss+xml"/><item><title>WaniCTF2023 WriteUp[Reversing, Forensics, Misc少し, Web1問]</title><link>https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/</link><pubDate>Fri, 05 May 2023 00:00:00 +0900</pubDate><guid>https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/</guid><description>&lt;h2 id="はじめに">はじめに&lt;/h2>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on やじるしのブログ</title><link>https://hiro-1219.github.io/blog/post/</link><description>Recent content in Posts on やじるしのブログ</description><generator>Hugo -- gohugo.io</generator><language>ja</language><lastBuildDate>Sat, 06 May 2023 18:00:00 +0900</lastBuildDate><atom:link href="https://hiro-1219.github.io/blog/post/index.xml" rel="self" type="application/rss+xml"/><item><title>WaniCTF2023 WriteUp</title><link>https://hiro-1219.github.io/blog/p/wanictf2023-writeup/</link><pubDate>Sat, 06 May 2023 18:00:00 +0900</pubDate><guid>https://hiro-1219.github.io/blog/p/wanictf2023-writeup/</guid><description>&lt;h2 id="はじめに">はじめに&lt;/h2>
 &lt;p>今回、チーム「🍣SUSH1st」のメンバーとして5/4から5/6まで開催されていた大阪大学のCTFクラブであるWani Hackaseが主催しているWaniCTF2023に参加しました。
 私は主にReversingとForensicsを中心にして解いたのでWriteUpをここに残します。&lt;/p>
 &lt;h2 id="reversing">Reversing&lt;/h2>
@@ -290,10 +290,10 @@ Ghidraを用いて静的解析を行ない、&lt;code>main&lt;/code>関数を確
 &lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
 &lt;/div>&lt;p>&lt;code>check&lt;/code>関数では、$a^3 + b^3 = c^3$を満たす3以上の自然数$a$, $b$, $c$が入力されたら、1を返すという処理を行なっていた。フェルマーの最終定理によると、これを満たすような$a$, $b$, $c$は存在しないため、単純に入力してFlagを表示するようなことはできない。そこで、gdbによる動的解析で、&lt;code>main&lt;/code>関数の20行目の条件分岐で強制的にelse側を通るようにEFLAGSレジスタを書き変える。逆アセンブルを行ない、&lt;code>main&lt;/code>関数の20行目に対応する命令を見つける。&lt;/p>
-&lt;p>&lt;img src="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/rev-fermat_assembly.png"
+&lt;p>&lt;img src="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/rev-fermat_assembly.png"
 width="975"
 height="332"
-srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/rev-fermat_assembly_huc7499952dd4b642fff642e404eac49f0_36651_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/rev-fermat_assembly_huc7499952dd4b642fff642e404eac49f0_36651_1024x0_resize_box_3.png 1024w"
+srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/rev-fermat_assembly_huc7499952dd4b642fff642e404eac49f0_36651_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/rev-fermat_assembly_huc7499952dd4b642fff642e404eac49f0_36651_1024x0_resize_box_3.png 1024w"
 loading="lazy"
 alt="main関数の20行目に対応する逆アセンブル結果"
 class="gallery-image"
@@ -712,10 +712,10 @@ Legend: code, data, rodata, value
 そこで、これらの文字列をバイナリから探すと、local_10は&lt;code>ckwajea&lt;/code>、local_1cは&lt;code>feag5gwea1411_efae!!&lt;/code>
 であることが分かった。
 実際に入力するとFlagが得られた。&lt;/p>
-&lt;p>&lt;img src="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/web_assembly_solve.png"
+&lt;p>&lt;img src="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/web_assembly_solve.png"
 width="1003"
 height="334"
-srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/web_assembly_solve_hu9137071de3f351cdf1a732ef08a731de_30027_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/web_assembly_solve_hu9137071de3f351cdf1a732ef08a731de_30027_1024x0_resize_box_3.png 1024w"
+srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/web_assembly_solve_hu9137071de3f351cdf1a732ef08a731de_30027_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/web_assembly_solve_hu9137071de3f351cdf1a732ef08a731de_30027_1024x0_resize_box_3.png 1024w"
 loading="lazy"
 alt="見つけた名前とパスワードを入力した結果"
 class="gallery-image"
@@ -758,10 +758,10 @@ return文では、Crypted12にCrypted8とCrypted7を入力し、この結果と�
 入力されたFlagが正しいかどうか判断していると考えられる。&lt;/p>
 &lt;p>return文より、Crypted12の結果が重要であると考え、Crypted12のdがbase64デコードされる前のbase64文字列を取り出し、それを&lt;a class="link" href="https://gchq.github.io/CyberChef/#recipe=From_Base64%28%27A-Za-z0-9%2B/%3D%27,true,false%29&amp;amp;input=RzB4MVlWRUFBUVFJQkFnQUJRQUFBQUFBQUFCbloxOTVBQUFBQUFBQUFBQUFBQUFDQkJRQUFBQUZBQUFBQmtCQUFFR0FBQUFjUUFBQkJRQUFBQWJBUUFBTEFFRUFnVUFCQUJ5QWdBRkJnQUVBRjBBQUFCYkFBSUNGd0FFQXdRQUNBSnhBQUFFV2dBQ0FoY0FCQU1GQUFnQ2NRQUFCSGdDQUFBb0FBQUFFQXdBQUFBQUFBQUJwYndBRUJnQUFBQUFBQUFCM2NtbDBaUUFFRGdBQUFBQUFBQUJKYm5CMWRDQkdURUZISURvZ0FBUUdBQUFBQUFBQUFITjBaR2x1QUFRRkFBQUFBQUFBQUhKbFlXUUFCQVlBQUFBQUFBQUFLbXhwYm1VQUJFTUFBQUFBQUFBQVJreEJSM3N4ZFdGZk1ISmZjSGswYURCdVgzZG9OSFJmWkRCZmVUQjFYek5oZVY5M05HVnVYelF6YTJWa1gzZG9NV05vWHpCdVpWOHhjMTlpWlRRMFpYSjlBQVFHQUFBQUFBQUFBSEJ5YVc1MEFBUUlBQUFBQUFBQUFFTnZjbkpsWTNRQUJBb0FBQUFBQUFBQVNXNWpiM0p5WldOMEFBQUFBQUFVQUFBQUFRQUFBQUVBQUFBQkFBQUFBUUFBQUFJQUFBQUNBQUFBQWdBQUFBSUFBQUFDQUFBQUF3QUFBQVFBQUFBRUFBQUFCUUFBQUFVQUFBQUZBQUFBQlFBQUFBY0FBQUFIQUFBQUJ3QUFBQWdBQUFBQ0FBQUFBZ0FBQUFBQUFBQmhBQWtBQUFBVEFBQUFBZ0FBQUFBQUFBQmlBQW9BQUFBVEFBQUFBQUFBQUE9PQ" target="_blank" rel="noopener"
 >CyberChef&lt;/a>でデコードした際にどのようなものが得られるか調べた。この結果、得られたデータの中にFlagが書かれていた。&lt;/p>
-&lt;p>&lt;img src="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/lua_base64_decode.png"
+&lt;p>&lt;img src="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/lua_base64_decode.png"
 width="932"
 height="298"
-srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/lua_base64_decode_hufa5348973987abdcfa19a248b1ec1359_34909_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/lua_base64_decode_hufa5348973987abdcfa19a248b1ec1359_34909_1024x0_resize_box_3.png 1024w"
+srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/lua_base64_decode_hufa5348973987abdcfa19a248b1ec1359_34909_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/lua_base64_decode_hufa5348973987abdcfa19a248b1ec1359_34909_1024x0_resize_box_3.png 1024w"
 loading="lazy"
 alt="得られたbase64文字列をデコードした結果"
 class="gallery-image"
@@ -1040,30 +1040,30 @@ wiresharkでFollowを用いると、どのようなデータが通信されて�
 &lt;p>&lt;code>192.51.100.1:4500&lt;/code>から&lt;code>192.168.0.16:63557&lt;/code>の方向で通信されたデータを取り出し、Raw形式で保存する。また、
 このままだと、データの始めにHTTPレスポンスのヘッダがついているので、その部分をバイナリエディタで削除すると、
 通信された3つの画像を得ることができる。&lt;/p>
-&lt;p>&lt;img src="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_dum.png"
+&lt;p>&lt;img src="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_dum.png"
 width="256"
 height="256"
-srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_dum_hu3683dbe56886a2f50bfe0373d56d7c6a_16251_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_dum_hu3683dbe56886a2f50bfe0373d56d7c6a_16251_1024x0_resize_box_3.png 1024w"
+srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_dum_hu3683dbe56886a2f50bfe0373d56d7c6a_16251_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_dum_hu3683dbe56886a2f50bfe0373d56d7c6a_16251_1024x0_resize_box_3.png 1024w"
 loading="lazy"
 alt="dum.jpg"
 class="gallery-image"
 data-flex-grow="100"
 data-flex-basis="240px"
 >
-&lt;img src="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_flag.png"
+&lt;img src="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_flag.png"
 width="256"
 height="256"
-srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_flag_hucf42101c8dde9d6b8e71664592112e3c_18214_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_flag_hucf42101c8dde9d6b8e71664592112e3c_18214_1024x0_resize_box_3.png 1024w"
+srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_flag_hucf42101c8dde9d6b8e71664592112e3c_18214_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_flag_hucf42101c8dde9d6b8e71664592112e3c_18214_1024x0_resize_box_3.png 1024w"
 loading="lazy"
 alt="flag.jpg"
 class="gallery-image"
 data-flex-grow="100"
 data-flex-basis="240px"
 >
-&lt;img src="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_pub.png"
+&lt;img src="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_pub.png"
 width="256"
 height="256"
-srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_pub_hu9a25568831eaeb3905cfe1ac3c628de5_19947_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_pub_hu9a25568831eaeb3905cfe1ac3c628de5_19947_1024x0_resize_box_3.png 1024w"
+srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_pub_hu9a25568831eaeb3905cfe1ac3c628de5_19947_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_pub_hu9a25568831eaeb3905cfe1ac3c628de5_19947_1024x0_resize_box_3.png 1024w"
 loading="lazy"
 alt="pub.jpg"
 class="gallery-image"
@@ -1164,10 +1164,10 @@ msgになにも代入されず、msgを使用しようとしたためにエラ�
 &lt;li>output_dir/output.txtにflag.txtの内容を書きこむ&lt;/li>
 &lt;/ol>
 &lt;p>作成したコードを実行し、生成されたpayload.ckptをサイトにアップロードするとFlagが得られた。&lt;/p>
-&lt;p>&lt;img src="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/machine-loading.png"
+&lt;p>&lt;img src="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/machine-loading.png"
 width="660"
 height="118"
-srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/machine-loading_hu14098d25161dcfb9444d30d2cacc6b6c_16437_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/machine-loading_hu14098d25161dcfb9444d30d2cacc6b6c_16437_1024x0_resize_box_3.png 1024w"
+srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/machine-loading_hu14098d25161dcfb9444d30d2cacc6b6c_16437_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/machine-loading_hu14098d25161dcfb9444d30d2cacc6b6c_16437_1024x0_resize_box_3.png 1024w"
 loading="lazy"
 alt="payload.ckptを渡した結果"
 class="gallery-image"
@@ -1179,17 +1179,17 @@ data-flex-basis="1342px"
 &lt;h3 id="indexeddbbeginner">IndexedDB[Beginner]&lt;/h3>
 &lt;p>与えられたサイトにアクセスすると、すでにFlagはページ内に隠したということが書かれている。
 問題タイトルのとおり、FlagはIndexedDB内に隠されていた。&lt;/p>
-&lt;p>&lt;img src="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/IndexedDB.png"
+&lt;p>&lt;img src="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/IndexedDB.png"
 width="761"
 height="291"
-srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/IndexedDB_hufdbe83097fcd0b460c2a47d7aca19575_44574_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/IndexedDB_hufdbe83097fcd0b460c2a47d7aca19575_44574_1024x0_resize_box_3.png 1024w"
+srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/IndexedDB_hufdbe83097fcd0b460c2a47d7aca19575_44574_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/IndexedDB_hufdbe83097fcd0b460c2a47d7aca19575_44574_1024x0_resize_box_3.png 1024w"
 loading="lazy"
 alt="IndexedDB内"
 class="gallery-image"
 data-flex-grow="261"
 data-flex-basis="627px"
 >&lt;/p>
-&lt;p>よってFlagは&lt;code>Flag{y0uc4n_u3e_db_1n_br0wser}&lt;/code>である。&lt;/p>
+&lt;p>よってFlagは&lt;code>FLAG{y0uc4n_u3e_db_1n_br0wser}&lt;/code>である。&lt;/p>
 &lt;h2 id="終わりに">終わりに&lt;/h2>
 &lt;p>今回はReversing、Forensics、Miscについて解いていきました。
 Reversingについては、与えられた問題に対して全て解くことができてうれしかったです。WebAssemblyの解析はうまくできたことがなく、どのようにやるのか分からなかったのですが、問題を通してどのように解析すればいいか分かりました。

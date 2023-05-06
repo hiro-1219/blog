@@ -4,18 +4,18 @@
 Reversing Just_Passw0rd[Beginner] 渡されたファイルはELF形式の実行ファイルである。 実行すると、パスワードの入力を求められ、そのパスワードが正しかったらFlagを表示 そうでなければ、Incorrectと表示されるようである。 stringsを用いて表層解析を行なうと、Flagがそのまま埋めこまれていることが分かった。
 1 2 3 4 5 6 7 8 9 10  vagrant@vagrant:~/Projects/WaniCTF2023/Reversing/rev-Just-Passw0rd$ strings just_password ... Input password &amp;gt; Incorrect Correct! FLAG is FLAG{1234_P@ssw0rd_admin_toor_qwerty} :*3$&amp;#34; GCC: (Ubuntu 8.4.0-3ubuntu2) 8.4.0 crtstuff.c ...   静的解析を行なうと、次のような処理を行なっているようであった。
 1 2 3 4 5  1. scanfでパスワードを入力 2. パスワードの長さが8文字であったなら a. パスワードがp3U28AxWならCorrect!とFlagを表示 b. そうでなければIncorrectを表示 3. そうでなければIncorrectを表示   そのため、実行してパスワードを入力してもFlagを得ることができる。
-1 2 3 4  vagrant@vagrant:~/Projects/WaniCTF2023/Reversing/rev-Just-Passw0rd$ ./just_password Input password &amp;gt; p3U28AxW Correct!"><title>WaniCTF2023 WriteUp[Reversing, Forensics, Misc少し, Web1問]</title>
-<link rel=canonical href=https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/>
-<link rel=stylesheet href=https://hiro-1219.github.io/blog/scss/style.min.ac77dcf8b111b51da39a92990f431923f210f3876d85798a2125667f96dc33a4.css><meta property="og:title" content="WaniCTF2023 WriteUp[Reversing, Forensics, Misc少し, Web1問]">
+1 2 3 4  vagrant@vagrant:~/Projects/WaniCTF2023/Reversing/rev-Just-Passw0rd$ ./just_password Input password &amp;gt; p3U28AxW Correct!"><title>WaniCTF2023 WriteUp</title>
+<link rel=canonical href=https://hiro-1219.github.io/blog/p/wanictf2023-writeup/>
+<link rel=stylesheet href=https://hiro-1219.github.io/blog/scss/style.min.ac77dcf8b111b51da39a92990f431923f210f3876d85798a2125667f96dc33a4.css><meta property="og:title" content="WaniCTF2023 WriteUp">
 <meta property="og:description" content="はじめに 今回、チーム「🍣SUSH1st」のメンバーとして5/4から5/6まで開催されていた大阪大学のCTFクラブであるWani Hackaseが主催しているWaniCTF2023に参加しました。 私は主にReversingとForensicsを中心にして解いたのでWriteUpをここに残します。
 Reversing Just_Passw0rd[Beginner] 渡されたファイルはELF形式の実行ファイルである。 実行すると、パスワードの入力を求められ、そのパスワードが正しかったらFlagを表示 そうでなければ、Incorrectと表示されるようである。 stringsを用いて表層解析を行なうと、Flagがそのまま埋めこまれていることが分かった。
 1 2 3 4 5 6 7 8 9 10  vagrant@vagrant:~/Projects/WaniCTF2023/Reversing/rev-Just-Passw0rd$ strings just_password ... Input password &amp;gt; Incorrect Correct! FLAG is FLAG{1234_P@ssw0rd_admin_toor_qwerty} :*3$&amp;#34; GCC: (Ubuntu 8.4.0-3ubuntu2) 8.4.0 crtstuff.c ...   静的解析を行なうと、次のような処理を行なっているようであった。
 1 2 3 4 5  1. scanfでパスワードを入力 2. パスワードの長さが8文字であったなら a. パスワードがp3U28AxWならCorrect!とFlagを表示 b. そうでなければIncorrectを表示 3. そうでなければIncorrectを表示   そのため、実行してパスワードを入力してもFlagを得ることができる。
 1 2 3 4  vagrant@vagrant:~/Projects/WaniCTF2023/Reversing/rev-Just-Passw0rd$ ./just_password Input password &amp;gt; p3U28AxW Correct!">
-<meta property="og:url" content="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/">
+<meta property="og:url" content="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/">
 <meta property="og:site_name" content="やじるしのブログ">
-<meta property="og:type" content="article"><meta property="article:section" content="Post"><meta property="article:published_time" content="2023-05-05T00:00:00+09:00"><meta property="article:modified_time" content="2023-05-05T00:00:00+09:00">
-<meta name=twitter:title content="WaniCTF2023 WriteUp[Reversing, Forensics, Misc少し, Web1問]">
+<meta property="og:type" content="article"><meta property="article:section" content="Post"><meta property="article:published_time" content="2023-05-06T18:00:00+09:00"><meta property="article:modified_time" content="2023-05-06T18:00:00+09:00">
+<meta name=twitter:title content="WaniCTF2023 WriteUp">
 <meta name=twitter:description content="はじめに 今回、チーム「🍣SUSH1st」のメンバーとして5/4から5/6まで開催されていた大阪大学のCTFクラブであるWani Hackaseが主催しているWaniCTF2023に参加しました。 私は主にReversingとForensicsを中心にして解いたのでWriteUpをここに残します。
 Reversing Just_Passw0rd[Beginner] 渡されたファイルはELF形式の実行ファイルである。 実行すると、パスワードの入力を求められ、そのパスワードが正しかったらFlagを表示 そうでなければ、Incorrectと表示されるようである。 stringsを用いて表層解析を行なうと、Flagがそのまま埋めこまれていることが分かった。
 1 2 3 4 5 6 7 8 9 10  vagrant@vagrant:~/Projects/WaniCTF2023/Reversing/rev-Just-Passw0rd$ strings just_password ... Input password &amp;gt; Incorrect Correct! FLAG is FLAG{1234_P@ssw0rd_admin_toor_qwerty} :*3$&amp;#34; GCC: (Ubuntu 8.4.0-3ubuntu2) 8.4.0 crtstuff.c ...   静的解析を行なうと、次のような処理を行なっているようであった。
@@ -88,12 +88,12 @@ CTF
 </header>
 <div class=article-title-wrapper>
 <h2 class=article-title>
-<a href=https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/>WaniCTF2023 WriteUp[Reversing, Forensics, Misc少し, Web1問]</a>
+<a href=https://hiro-1219.github.io/blog/p/wanictf2023-writeup/>WaniCTF2023 WriteUp</a>
 </h2>
 </div>
 <footer class=article-time>
 <div><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11.795 21H5a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v4"/><circle cx="18" cy="18" r="4"/><path d="M15 3v4"/><path d="M7 3v4"/><path d="M3 11h16"/><path d="M18 16.496V18l1 1"/></svg>
-<time class=article-time--published>May 05, 2023</time>
+<time class=article-time--published>May 06, 2023</time>
 </div>
 <div><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
 <time class=article-time--reading>
@@ -403,7 +403,7 @@ Ghidraを用いて静的解析を行ない、<code>main</code>関数を確認す
 </code></pre></td></tr></table>
 </div>
 </div><p><code>check</code>関数では、$a^3 + b^3 = c^3$を満たす3以上の自然数$a$, $b$, $c$が入力されたら、1を返すという処理を行なっていた。フェルマーの最終定理によると、これを満たすような$a$, $b$, $c$は存在しないため、単純に入力してFlagを表示するようなことはできない。そこで、gdbによる動的解析で、<code>main</code>関数の20行目の条件分岐で強制的にelse側を通るようにEFLAGSレジスタを書き変える。逆アセンブルを行ない、<code>main</code>関数の20行目に対応する命令を見つける。</p>
-<p><img src=https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/rev-fermat_assembly.png width=975 height=332 srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/rev-fermat_assembly_huc7499952dd4b642fff642e404eac49f0_36651_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/rev-fermat_assembly_huc7499952dd4b642fff642e404eac49f0_36651_1024x0_resize_box_3.png 1024w" loading=lazy alt=main関数の20行目に対応する逆アセンブル結果 class=gallery-image data-flex-grow=293 data-flex-basis=704px></p>
+<p><img src=https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/rev-fermat_assembly.png width=975 height=332 srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/rev-fermat_assembly_huc7499952dd4b642fff642e404eac49f0_36651_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/rev-fermat_assembly_huc7499952dd4b642fff642e404eac49f0_36651_1024x0_resize_box_3.png 1024w" loading=lazy alt=main関数の20行目に対応する逆アセンブル結果 class=gallery-image data-flex-grow=293 data-flex-basis=704px></p>
 <p>BaseImageAddressを<code>0x00000000</code>としたとき、<code>0x000014c7</code>でJZ命令によって条件分岐を行なっている。
 JZ命令はZeroフラグが1の場合に指定されたアドレスまで飛ぶ命令である。そこで、この命令が実行される前に、
 Zeroフラグを0に変更することで、飛ばずに<code>flag_print</code>関数を実行することができる。
@@ -820,7 +820,7 @@ Legend: code, data, rodata, value
 そこで、これらの文字列をバイナリから探すと、local_10は<code>ckwajea</code>、local_1cは<code>feag5gwea1411_efae!!</code>
 であることが分かった。
 実際に入力するとFlagが得られた。</p>
-<p><img src=https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/web_assembly_solve.png width=1003 height=334 srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/web_assembly_solve_hu9137071de3f351cdf1a732ef08a731de_30027_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/web_assembly_solve_hu9137071de3f351cdf1a732ef08a731de_30027_1024x0_resize_box_3.png 1024w" loading=lazy alt=見つけた名前とパスワードを入力した結果 class=gallery-image data-flex-grow=300 data-flex-basis=720px></p>
+<p><img src=https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/web_assembly_solve.png width=1003 height=334 srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/web_assembly_solve_hu9137071de3f351cdf1a732ef08a731de_30027_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/web_assembly_solve_hu9137071de3f351cdf1a732ef08a731de_30027_1024x0_resize_box_3.png 1024w" loading=lazy alt=見つけた名前とパスワードを入力した結果 class=gallery-image data-flex-grow=300 data-flex-basis=720px></p>
 <p>よってFlagは<code>Flag{Y0u_C4n_3x3cut3_Cpp_0n_Br0us3r!}</code>である。</p>
 <h3 id=luaeasy>Lua[Easy]</h3>
 <p>渡されたファイルは、luaのソースコードと実行するためのMakefileである。
@@ -856,7 +856,7 @@ Legend: code, data, rodata, value
 return文では、Crypted12にCrypted8とCrypted7を入力し、この結果と標準入力で入力された文字列をCrypted5に入力し、
 入力されたFlagが正しいかどうか判断していると考えられる。</p>
 <p>return文より、Crypted12の結果が重要であると考え、Crypted12のdがbase64デコードされる前のbase64文字列を取り出し、それを<a class=link href="https://gchq.github.io/CyberChef/#recipe=From_Base64%28%27A-Za-z0-9%2B/%3D%27,true,false%29&input=RzB4MVlWRUFBUVFJQkFnQUJRQUFBQUFBQUFCbloxOTVBQUFBQUFBQUFBQUFBQUFDQkJRQUFBQUZBQUFBQmtCQUFFR0FBQUFjUUFBQkJRQUFBQWJBUUFBTEFFRUFnVUFCQUJ5QWdBRkJnQUVBRjBBQUFCYkFBSUNGd0FFQXdRQUNBSnhBQUFFV2dBQ0FoY0FCQU1GQUFnQ2NRQUFCSGdDQUFBb0FBQUFFQXdBQUFBQUFBQUJwYndBRUJnQUFBQUFBQUFCM2NtbDBaUUFFRGdBQUFBQUFBQUJKYm5CMWRDQkdURUZISURvZ0FBUUdBQUFBQUFBQUFITjBaR2x1QUFRRkFBQUFBQUFBQUhKbFlXUUFCQVlBQUFBQUFBQUFLbXhwYm1VQUJFTUFBQUFBQUFBQVJreEJSM3N4ZFdGZk1ISmZjSGswYURCdVgzZG9OSFJmWkRCZmVUQjFYek5oZVY5M05HVnVYelF6YTJWa1gzZG9NV05vWHpCdVpWOHhjMTlpWlRRMFpYSjlBQVFHQUFBQUFBQUFBSEJ5YVc1MEFBUUlBQUFBQUFBQUFFTnZjbkpsWTNRQUJBb0FBQUFBQUFBQVNXNWpiM0p5WldOMEFBQUFBQUFVQUFBQUFRQUFBQUVBQUFBQkFBQUFBUUFBQUFJQUFBQUNBQUFBQWdBQUFBSUFBQUFDQUFBQUF3QUFBQVFBQUFBRUFBQUFCUUFBQUFVQUFBQUZBQUFBQlFBQUFBY0FBQUFIQUFBQUJ3QUFBQWdBQUFBQ0FBQUFBZ0FBQUFBQUFBQmhBQWtBQUFBVEFBQUFBZ0FBQUFBQUFBQmlBQW9BQUFBVEFBQUFBQUFBQUE9PQ" target=_blank rel=noopener>CyberChef</a>でデコードした際にどのようなものが得られるか調べた。この結果、得られたデータの中にFlagが書かれていた。</p>
-<p><img src=https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/lua_base64_decode.png width=932 height=298 srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/lua_base64_decode_hufa5348973987abdcfa19a248b1ec1359_34909_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/lua_base64_decode_hufa5348973987abdcfa19a248b1ec1359_34909_1024x0_resize_box_3.png 1024w" loading=lazy alt=得られたbase64文字列をデコードした結果 class=gallery-image data-flex-grow=312 data-flex-basis=750px></p>
+<p><img src=https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/lua_base64_decode.png width=932 height=298 srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/lua_base64_decode_hufa5348973987abdcfa19a248b1ec1359_34909_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/lua_base64_decode_hufa5348973987abdcfa19a248b1ec1359_34909_1024x0_resize_box_3.png 1024w" loading=lazy alt=得られたbase64文字列をデコードした結果 class=gallery-image data-flex-grow=312 data-flex-basis=750px></p>
 <p>よって、Flagは<code>FLAG{1ua_0r_py4h0n_wh4t_d0_y0u_3ay_w4en_43ked_wh1ch_0ne_1s_be44er}</code>である。
 僕はpythonをよく書くので(luaはほとんど書かないので)、pythonを選びます。</p>
 <h2 id=forensics>Forensics</h2>
@@ -1129,9 +1129,9 @@ wiresharkでFollowを用いると、どのようなデータが通信されて�
 <p><code>192.51.100.1:4500</code>から<code>192.168.0.16:63557</code>の方向で通信されたデータを取り出し、Raw形式で保存する。また、
 このままだと、データの始めにHTTPレスポンスのヘッダがついているので、その部分をバイナリエディタで削除すると、
 通信された3つの画像を得ることができる。</p>
-<p><img src=https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_dum.png width=256 height=256 srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_dum_hu3683dbe56886a2f50bfe0373d56d7c6a_16251_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_dum_hu3683dbe56886a2f50bfe0373d56d7c6a_16251_1024x0_resize_box_3.png 1024w" loading=lazy alt=dum.jpg class=gallery-image data-flex-grow=100 data-flex-basis=240px>
-<img src=https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_flag.png width=256 height=256 srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_flag_hucf42101c8dde9d6b8e71664592112e3c_18214_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_flag_hucf42101c8dde9d6b8e71664592112e3c_18214_1024x0_resize_box_3.png 1024w" loading=lazy alt=flag.jpg class=gallery-image data-flex-grow=100 data-flex-basis=240px>
-<img src=https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_pub.png width=256 height=256 srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_pub_hu9a25568831eaeb3905cfe1ac3c628de5_19947_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/beg_for_a_peg_pub_hu9a25568831eaeb3905cfe1ac3c628de5_19947_1024x0_resize_box_3.png 1024w" loading=lazy alt=pub.jpg class=gallery-image data-flex-grow=100 data-flex-basis=240px></p>
+<p><img src=https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_dum.png width=256 height=256 srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_dum_hu3683dbe56886a2f50bfe0373d56d7c6a_16251_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_dum_hu3683dbe56886a2f50bfe0373d56d7c6a_16251_1024x0_resize_box_3.png 1024w" loading=lazy alt=dum.jpg class=gallery-image data-flex-grow=100 data-flex-basis=240px>
+<img src=https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_flag.png width=256 height=256 srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_flag_hucf42101c8dde9d6b8e71664592112e3c_18214_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_flag_hucf42101c8dde9d6b8e71664592112e3c_18214_1024x0_resize_box_3.png 1024w" loading=lazy alt=flag.jpg class=gallery-image data-flex-grow=100 data-flex-basis=240px>
+<img src=https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_pub.png width=256 height=256 srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_pub_hu9a25568831eaeb3905cfe1ac3c628de5_19947_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/beg_for_a_peg_pub_hu9a25568831eaeb3905cfe1ac3c628de5_19947_1024x0_resize_box_3.png 1024w" loading=lazy alt=pub.jpg class=gallery-image data-flex-grow=100 data-flex-basis=240px></p>
 <p>よってFlagは<code>Flag{Hug_a_pug_less_than_three}</code>である。</p>
 <h2 id=misc>Misc</h2>
 <h3 id=promptbeginner>Prompt[Beginner]</h3>
@@ -1231,14 +1231,14 @@ msgになにも代入されず、msgを使用しようとしたためにエラ�
 <li>output_dir/output.txtにflag.txtの内容を書きこむ</li>
 </ol>
 <p>作成したコードを実行し、生成されたpayload.ckptをサイトにアップロードするとFlagが得られた。</p>
-<p><img src=https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/machine-loading.png width=660 height=118 srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/machine-loading_hu14098d25161dcfb9444d30d2cacc6b6c_16437_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/machine-loading_hu14098d25161dcfb9444d30d2cacc6b6c_16437_1024x0_resize_box_3.png 1024w" loading=lazy alt=payload.ckptを渡した結果 class=gallery-image data-flex-grow=559 data-flex-basis=1342px></p>
+<p><img src=https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/machine-loading.png width=660 height=118 srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/machine-loading_hu14098d25161dcfb9444d30d2cacc6b6c_16437_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/machine-loading_hu14098d25161dcfb9444d30d2cacc6b6c_16437_1024x0_resize_box_3.png 1024w" loading=lazy alt=payload.ckptを渡した結果 class=gallery-image data-flex-grow=559 data-flex-basis=1342px></p>
 <p>よってFlagは<code>FLAG{Use_0ther_extens10n_such_as_safetensors}</code>である。</p>
 <h2 id=web>Web</h2>
 <h3 id=indexeddbbeginner>IndexedDB[Beginner]</h3>
 <p>与えられたサイトにアクセスすると、すでにFlagはページ内に隠したということが書かれている。
 問題タイトルのとおり、FlagはIndexedDB内に隠されていた。</p>
-<p><img src=https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/IndexedDB.png width=761 height=291 srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/IndexedDB_hufdbe83097fcd0b460c2a47d7aca19575_44574_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeupreversing-forensics-misc%E5%B0%91%E3%81%97-web1%E5%95%8F/img/IndexedDB_hufdbe83097fcd0b460c2a47d7aca19575_44574_1024x0_resize_box_3.png 1024w" loading=lazy alt=IndexedDB内 class=gallery-image data-flex-grow=261 data-flex-basis=627px></p>
-<p>よってFlagは<code>Flag{y0uc4n_u3e_db_1n_br0wser}</code>である。</p>
+<p><img src=https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/IndexedDB.png width=761 height=291 srcset="https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/IndexedDB_hufdbe83097fcd0b460c2a47d7aca19575_44574_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/wanictf2023-writeup/img/IndexedDB_hufdbe83097fcd0b460c2a47d7aca19575_44574_1024x0_resize_box_3.png 1024w" loading=lazy alt=IndexedDB内 class=gallery-image data-flex-grow=261 data-flex-basis=627px></p>
+<p>よってFlagは<code>FLAG{y0uc4n_u3e_db_1n_br0wser}</code>である。</p>
 <h2 id=終わりに>終わりに</h2>
 <p>今回はReversing、Forensics、Miscについて解いていきました。
 Reversingについては、与えられた問題に対して全て解くことができてうれしかったです。WebAssemblyの解析はうまくできたことがなく、どのようにやるのか分からなかったのですが、問題を通してどのように解析すればいいか分かりました。
