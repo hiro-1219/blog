@@ -1,6 +1,6 @@
 ---
-title: "WaniCTF2023 WriteUp[Reversing, Forensics, Misc少し, Web1問]"
-date: 2023-05-05 00:00:00 +0900
+title: "WaniCTF2023 WriteUp"
+date: 2023-05-06 18:00:00 +0900
 math: true
 categories:
     - CTF
@@ -662,7 +662,7 @@ torch.load("payload.ckpt")
 
 ![IndexedDB内](img/IndexedDB.png)
 
-よってFlagは`Flag{y0uc4n_u3e_db_1n_br0wser}`である。
+よってFlagは`FLAG{y0uc4n_u3e_db_1n_br0wser}`である。
 
 
 ## 終わりに
