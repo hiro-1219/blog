@@ -5,7 +5,7 @@ image: img/predict.png
 math: true
 categories:
     - 機械学習
-    - Advent Calendar
+    - AdventCalendar
 ---
 ## はじめに
 この記事は「[長野高専 Advent Calendar 2022](https://qiita.com/advent-calendar/2022/nnct)」16日目に合わせて書かれた記事です．
