@@ -9,7 +9,7 @@
 各要素が連続値であるような$M$次元ベクトル$\boldsymbol{x} = (x_1, x_2, \cdots x_M)^\top \in \mathbb{R}^M$(確率変数)に対する関数$p(\boldsymbol{x})$が2つの条件を満たすとき，これを確率密度関数といいます． $$ p(\boldsymbol{x}) \geq 0 \\ \int p(\boldsymbol{x}) d\boldsymbol{x} = \int \cdots \int p(x_1, \cdots x_M) dx_1 \cdots dx_M = 1 $$
 $\boldsymbol{x}$の要素が離散値の場合，これを確率質量関数といいます．$\boldsymbol{x}$の要素が離散値になったことで積分記号の極限が外れて総和記号になっただけで，確率密度関数と表していることは同じです． $$ p(\boldsymbol{x}) \geq 0 \\ \sum_{\boldsymbol{x}} p(\boldsymbol{x}) = \sum_{x_1} \cdots \sum_{x_M} p(x_1, \cdots x_M) = 1 $$"><title>ベイズ機械学習の流れを理解する</title>
 <link rel=canonical href=https://hiro-1219.github.io/blog/p/%E3%83%99%E3%82%A4%E3%82%BA%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E3%81%AE%E6%B5%81%E3%82%8C%E3%82%92%E7%90%86%E8%A7%A3%E3%81%99%E3%82%8B/>
-<link rel=stylesheet href=https://hiro-1219.github.io/blog/scss/style.min.ac77dcf8b111b51da39a92990f431923f210f3876d85798a2125667f96dc33a4.css><meta property="og:title" content="ベイズ機械学習の流れを理解する">
+<link rel=stylesheet href=https://hiro-1219.github.io/blog/scss/style.min.5a8e892f6fa14515e9065eee1f5d2e05302606ec7f11750b2fb95198f9cdcbfd.css><meta property="og:title" content="ベイズ機械学習の流れを理解する">
 <meta property="og:description" content="はじめに この記事は「長野高専 Advent Calendar 2022」16日目に合わせて書かれた記事です． おひさしぶりです．やじるしです．Advent Calendar 2022の季節がやってまいりました（この記事を出すのは後半戦）．今回は，機械学習を確率論からアプローチした「ベイズ機械学習」についてまとめたいと思います．自分が理解できるように噛み砕いて書くつもりです．
 機械学習とはなにか ベイズ機械学習を始める前に，そもそも機械学習とはなんなのか示さないといけません． トム・M・ミッチェルの学習の定義を引用します．
  コンピュータプログラムがタスクのクラス$T$と性能指標$P$に関し経験$E$から学習するとは，$T$内のタスクの$P$で測った性能が経験$E$により改善されることを言う．
